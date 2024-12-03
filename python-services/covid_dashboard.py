@@ -3,6 +3,7 @@ from dash import dcc, html
 import plotly.express as px
 import pandas as pd
 from sqlalchemy import create_engine
+import os
 
 # Database connection
 DATABASE_URI = "postgresql+psycopg2://postgres:root@/cloudsql/bilguun3:us-central1:mypostgres"
@@ -47,5 +48,6 @@ app.layout = html.Div([
 ])
 
 if __name__ == "__main__":
-    # Explicitly specify the port as 8050
-    app.run_server(debug=True, host="0.0.0.0", port=8050)
+    # Get the port from the environment variable
+    port = int(os.getenv("PORT", "8050"))  # Default to 8050 if PORT is not set
+    app.run_server(debug=True, host="0.0.0.0", port=port)
