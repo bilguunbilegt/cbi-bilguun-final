@@ -21,12 +21,24 @@ steps:
   entrypoint: gcloud
   args: ['run', 'deploy','go-services', '--image','gcr.io/bilguun3/go-services', '--region','us-central1', '--add-cloudsql-instances', 'bilguun3:us-central1:mypostgres','--platform','managed', '--port','8080', '--allow-unauthenticated']
 
+# Steps to build a docker image for python-services, push it to container registry and deploy it to cloud run.  
+- name: "gcr.io/cloud-builders/docker"
+  args: ['build', '-t', 'gcr.io/bilguun3/python-services', '-f', 'python-services/Dockerfile', 'python-services']
+- name: "gcr.io/cloud-builders/docker"
+  args: ['push', 'gcr.io/bilguun3/python-services']
+  
+- name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+  entrypoint: gcloud
+  args: ['run', 'deploy','python-services', '--image','gcr.io/bilguun3/python-services', '--region','us-central1', '--add-cloudsql-instances', 'bilguun3:us-central1:mypostgres','--platform','managed', '--port','8000', '--allow-unauthenticated']
+
+
 options:
   logging: CLOUD_LOGGING_ONLY
 
 images:
 - gcr.io/bilguun3/go-services
 - gcr.io/bilguun3/pgadmin
+- gcr.io/bilguun3/python-services
 
 
 # steps:
