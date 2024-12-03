@@ -19,6 +19,5 @@ EXPOSE 8050
 # Set the PORT environment variable (default to 8050)
 ENV PORT 8050
 
-# Start the application
-CMD ["python3", "covid_dashboard.py"]
-
+# Run the forecasting script before starting the dashboard
+CMD ["bash", "-c", "python3 covid_forecasting.py && python3 covid_dashboard.py"]
