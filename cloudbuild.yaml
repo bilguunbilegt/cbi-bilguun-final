@@ -37,7 +37,7 @@ steps:
 
   # Step to build and push the Python service
   - name: "gcr.io/cloud-builders/docker"
-    args: ['build', '-t', 'gcr.io/bilguun3/python-service's, '-f', 'python-services/Dockerfile', 'python-services']
+    args: ['build', '-t', 'gcr.io/bilguun3/python-services', '-f', 'python-services/Dockerfile', 'python-services']
   - name: "gcr.io/cloud-builders/docker"
     args: ['push', 'gcr.io/bilguun3/python-service']
 
