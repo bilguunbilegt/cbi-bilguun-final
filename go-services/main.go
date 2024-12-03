@@ -1155,32 +1155,32 @@ func GetBuildingPermits(db *sql.DB) {
 func GetCovidDetails(db *sql.DB) {
 	fmt.Println("GetCovidDetails: Collecting COVID Details Data")
 
-	// Define table schema for COVID details
-	drop_table := `DROP TABLE IF EXISTS covid_details`
-	_, err := db.Exec(drop_table)
+	// Drop the table if it already exists
+	dropTable := `DROP TABLE IF EXISTS covid_details`
+	_, err := db.Exec(dropTable)
 	if err != nil {
 		panic(err)
 	}
 
-	create_table := `CREATE TABLE IF NOT EXISTS covid_details (
-		id SERIAL PRIMARY KEY,
-		zip_code VARCHAR(10),
-		week_number INT,
-		week_start TIMESTAMP,
-		week_end TIMESTAMP,
-		cases_weekly INT,
-		cases_cumulative INT,
-		case_rate_weekly DOUBLE PRECISION,
-		case_rate_cumulative DOUBLE PRECISION,
-		percent_tested_positive_weekly DOUBLE PRECISION,
-		percent_tested_positive_cumulative DOUBLE PRECISION,
-		population INT
-	)`
-	_, err = db.Exec(create_table)
+	// Create the table
+	createTable := `CREATE TABLE IF NOT EXISTS covid_details (
+        id SERIAL PRIMARY KEY,
+        zip_code VARCHAR(10),
+        week_number INT,
+        week_start TIMESTAMP,
+        week_end TIMESTAMP,
+        cases_weekly INT,
+        cases_cumulative INT,
+        case_rate_weekly DOUBLE PRECISION,
+        case_rate_cumulative DOUBLE PRECISION,
+        percent_tested_positive_weekly DOUBLE PRECISION,
+        percent_tested_positive_cumulative DOUBLE PRECISION,
+        population INT
+    )`
+	_, err = db.Exec(createTable)
 	if err != nil {
 		panic(err)
 	}
-
 	fmt.Println("Created Table for COVID Details")
 
 	// URL to fetch COVID details
@@ -1196,42 +1196,60 @@ func GetCovidDetails(db *sql.DB) {
 	fmt.Println("Received data from SODA REST API for COVID Details")
 
 	body, _ := ioutil.ReadAll(res.Body)
-	var covid_data_list CovidJsonRecords
-	json.Unmarshal(body, &covid_data_list)
+	var covidDataList CovidJsonRecords
+	json.Unmarshal(body, &covidDataList)
 
-	s := fmt.Sprintf("\n\n COVID Details: Number of SODA records received = %d\n\n", len(covid_data_list))
+	s := fmt.Sprintf("\n\nCOVID Details: Number of SODA records received = %d\n\n", len(covidDataList))
 	io.WriteString(os.Stdout, s)
 
 	// Process and insert data into the table
-	for _, record := range covid_data_list {
-		zip_code := record.Zip_code
-		if zip_code == "" {
+	const sodaLayout = "2006-01-02T15:04:05.000"
+	const dbLayout = "2006-01-02 15:04:05"
+
+	for _, record := range covidDataList {
+		zipCode := record.Zip_code
+		if zipCode == "" {
 			continue
 		}
 
-		week_number, _ := strconv.Atoi(record.Week_number)
-		week_start, _ := time.Parse(time.RFC3339, record.Week_start)
-		week_end, _ := time.Parse(time.RFC3339, record.Week_end)
-		cases_weekly, _ := strconv.Atoi(record.Cases_weekly)
-		cases_cumulative, _ := strconv.Atoi(record.Cases_cumulative)
-		case_rate_weekly, _ := strconv.ParseFloat(record.Case_rate_weekly, 64)
-		case_rate_cumulative, _ := strconv.ParseFloat(record.Case_rate_cumulative, 64)
-		percent_tested_positive_weekly, _ := strconv.ParseFloat(record.Percent_tested_positive_weekly, 64)
-		percent_tested_positive_cumulative, _ := strconv.ParseFloat(record.Percent_tested_positive_cumulative, 64)
+		weekNumber, _ := strconv.Atoi(record.Week_number)
+
+		// Parse and format week_start
+		weekStart, err := time.Parse(sodaLayout, record.Week_start)
+		if err != nil {
+			fmt.Printf("Error parsing week_start: %v\n", err)
+			continue
+		}
+		weekStartDB := weekStart.Format(dbLayout)
+
+		// Parse and format week_end
+		weekEnd, err := time.Parse(sodaLayout, record.Week_end)
+		if err != nil {
+			fmt.Printf("Error parsing week_end: %v\n", err)
+			continue
+		}
+		weekEndDB := weekEnd.Format(dbLayout)
+
+		casesWeekly, _ := strconv.Atoi(record.Cases_weekly)
+		casesCumulative, _ := strconv.Atoi(record.Cases_cumulative)
+		caseRateWeekly, _ := strconv.ParseFloat(record.Case_rate_weekly, 64)
+		caseRateCumulative, _ := strconv.ParseFloat(record.Case_rate_cumulative, 64)
+		percentTestedPositiveWeekly, _ := strconv.ParseFloat(record.Percent_tested_positive_weekly, 64)
+		percentTestedPositiveCumulative, _ := strconv.ParseFloat(record.Percent_tested_positive_cumulative, 64)
 		population, _ := strconv.Atoi(record.Population)
 
 		sql := `INSERT INTO covid_details (
-			zip_code, week_number, week_start, week_end, cases_weekly, cases_cumulative, 
-			case_rate_weekly, case_rate_cumulative, percent_tested_positive_weekly, 
-			percent_tested_positive_cumulative, population
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
+            zip_code, week_number, week_start, week_end, cases_weekly, cases_cumulative, 
+            case_rate_weekly, case_rate_cumulative, percent_tested_positive_weekly, 
+            percent_tested_positive_cumulative, population
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
 
-		_, err := db.Exec(sql, zip_code, week_number, week_start, week_end, cases_weekly, cases_cumulative,
-			case_rate_weekly, case_rate_cumulative, percent_tested_positive_weekly,
-			percent_tested_positive_cumulative, population)
+		_, err = db.Exec(sql, zipCode, weekNumber, weekStartDB, weekEndDB, casesWeekly, casesCumulative,
+			caseRateWeekly, caseRateCumulative, percentTestedPositiveWeekly,
+			percentTestedPositiveCumulative, population)
 
 		if err != nil {
-			fmt.Printf("Error inserting record for zip code %s: %v\n", zip_code, err)
+			fmt.Printf("Error inserting record for zip code %s: %v\n", zipCode, err)
 		}
 	}
 
