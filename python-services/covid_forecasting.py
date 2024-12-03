@@ -15,39 +15,83 @@ def fetch_covid_data():
     WHERE cases_weekly IS NOT NULL
     ORDER BY week_start;
     """
-    df = pd.read_sql(query, engine)
-    return df
+    try:
+        df = pd.read_sql(query, engine)
+        if df.empty:
+            raise ValueError("No data found in 'covid_details' table.")
+        return df
+    except Exception as e:
+        print(f"Error fetching data: {e}")
+        raise
 
 # Preprocess data
 def preprocess_data(df):
-    # Ensure the data is sorted and properly formatted
-    df['ds'] = pd.to_datetime(df['ds'])
-    return df
+    try:
+        # Convert dates and handle invalid entries
+        df['ds'] = pd.to_datetime(df['ds'], errors='coerce')  # Invalid dates become NaT
+        invalid_dates = df[df['ds'].isna()]  # Log invalid dates
+        if not invalid_dates.empty:
+            print("Invalid dates found and removed:")
+            print(invalid_dates)
+        
+        df = df.dropna(subset=['ds'])  # Drop rows with invalid dates
+        return df
+    except Exception as e:
+        print(f"Error during preprocessing: {e}")
+        raise
 
 # Forecasting
 def forecast_covid_alerts(df):
-    model = Prophet()
-    model.fit(df)
+    try:
+        if df.empty or len(df) < 2:
+            raise ValueError("Insufficient data to train the Prophet model.")
+        
+        model = Prophet()
+        model.fit(df)
 
-    future = model.make_future_dataframe(periods=14, freq='D')  # Forecast next 14 days
-    forecast = model.predict(future)
+        future = model.make_future_dataframe(periods=14, freq='D')  # Forecast next 14 days
+        forecast = model.predict(future)
 
-    # Assign alert levels based on forecasted cases
-    forecast['alert_level'] = pd.cut(
-        forecast['yhat'],
-        bins=[-float('inf'), 50, 100, float('inf')],
-        labels=['Low', 'Medium', 'High']
-    )
-    return forecast[['ds', 'yhat', 'alert_level']]
+        # Assign alert levels based on forecasted cases
+        forecast['alert_level'] = pd.cut(
+            forecast['yhat'],
+            bins=[-float('inf'), 50, 100, float('inf')],
+            labels=['Low', 'Medium', 'High']
+        )
+        return forecast[['ds', 'yhat', 'alert_level']]
+    except Exception as e:
+        print(f"Error during forecasting: {e}")
+        raise
 
 # Save forecast to database
 def save_forecast_to_db(forecast):
-    forecast.rename(columns={'ds': 'date', 'yhat': 'forecasted_cases'}, inplace=True)
-    forecast.to_sql('forecasted_alerts', engine, if_exists='replace', index=False)
+    try:
+        if forecast.empty:
+            raise ValueError("No forecast data to save.")
+        
+        forecast.rename(columns={'ds': 'date', 'yhat': 'forecasted_cases'}, inplace=True)
+        forecast.to_sql('forecasted_alerts', engine, if_exists='replace', index=False)
+        print("Forecast saved successfully to database.")
+    except Exception as e:
+        print(f"Error saving forecast to database: {e}")
+        raise
 
 if __name__ == "__main__":
-    data = fetch_covid_data()
-    preprocessed_data = preprocess_data(data)
-    forecast = forecast_covid_alerts(preprocessed_data)
-    save_forecast_to_db(forecast)
-    print("Forecasting completed and saved to database.")
+    try:
+        print("Fetching COVID-19 data from database...")
+        data = fetch_covid_data()
+        print(f"Data fetched: {data.head()}")
+
+        print("Preprocessing data...")
+        preprocessed_data = preprocess_data(data)
+        print(f"Preprocessed data: {preprocessed_data.head()}")
+
+        print("Running forecast...")
+        forecast = forecast_covid_alerts(preprocessed_data)
+        print(f"Forecast: {forecast.head()}")
+
+        print("Saving forecast to database...")
+        save_forecast_to_db(forecast)
+        print("Forecasting completed successfully.")
+    except Exception as main_exception:
+        print(f"An error occurred: {main_exception}")
