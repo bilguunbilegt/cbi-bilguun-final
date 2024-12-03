@@ -1,0 +1,35 @@
+# Step to build and deploy the Go service
+- name: "gcr.io/cloud-builders/docker"
+  args: ['build', '-t', 'gcr.io/bilguun3/go-microservice', '-f', 'Dockerfile-go', '.']
+- name: "gcr.io/cloud-builders/docker"
+  args: ['push', 'gcr.io/bilguun3/go-microservice']
+
+- name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+  entrypoint: gcloud
+  args: [
+    'run', 'deploy', 'go-microservice',
+    '--image', 'gcr.io/bilguun3/go-microservice',
+    '--region', 'us-central1',
+    '--add-cloudsql-instances', 'bilguun3:us-central1:mypostgres',
+    '--platform', 'managed',
+    '--port', '8080',
+    '--allow-unauthenticated'
+  ]
+
+# Step to build and deploy the Python service
+- name: "gcr.io/cloud-builders/docker"
+  args: ['build', '-t', 'gcr.io/bilguun3/python-service', '-f', 'Dockerfile-python', '.']
+- name: "gcr.io/cloud-builders/docker"
+  args: ['push', 'gcr.io/bilguun3/python-service']
+
+- name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+  entrypoint: gcloud
+  args: [
+    'run', 'deploy', 'python-service',
+    '--image', 'gcr.io/bilguun3/python-service',
+    '--region', 'us-central1',
+    '--add-cloudsql-instances', 'bilguun3:us-central1:mypostgres',
+    '--platform', 'managed',
+    '--port', '8050',
+    '--allow-unauthenticated'
+  ]
