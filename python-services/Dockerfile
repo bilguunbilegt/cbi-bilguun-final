@@ -4,8 +4,8 @@ FROM python:3.9-slim AS python-env
 # Install system dependencies required for Prophet and Python libraries
 RUN apt-get update && apt-get install -y \
     libpq-dev gcc g++ make && \
-    pip install --no-cache-dir pandas sqlalchemy psycopg2 prophet dash plotly
-
+    pip install --no-cache-dir pandas sqlalchemy psycopg2 prophet dash plotly pystan==2.19.1.1
+    
 # Set the working directory
 WORKDIR /app
 
