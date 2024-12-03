@@ -13,7 +13,7 @@ steps:
   
 # Steps to build a docker image for go-services, push it to container registry and deploy it to cloud run.  
 - name: "gcr.io/cloud-builders/docker"
-  args: ['build', '-t', 'gcr.io/bilguun3/go-services','go-services/Dockerfile']
+  args: ['build', '-t', 'gcr.io/bilguun3/go-services', 'go-services/Dockerfile', 'go-services']
 - name: "gcr.io/cloud-builders/docker"
   args: ['push', 'gcr.io/bilguun3/go-services']
   
