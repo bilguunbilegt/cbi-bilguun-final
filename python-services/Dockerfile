@@ -13,8 +13,12 @@ WORKDIR /app
 COPY covid_forecasting.py .
 COPY covid_dashboard.py .
 
-# Expose the necessary port for the Python service
+# Expose the port for Cloud Run
 EXPOSE 8050
 
-# Command to run the primary Python script
+# Set the PORT environment variable (default to 8050)
+ENV PORT 8050
+
+# Start the application
 CMD ["python3", "covid_dashboard.py"]
+
