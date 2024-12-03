@@ -10,8 +10,8 @@ steps:
     entrypoint: gcloud
     args:
       [
-        'run', 'deploy', 'pg-admin',
-        '--image', 'gcr.io/bilguun3/pgadmin',
+        'run', 'deploy', 'pg-admin-services',
+        '--image', 'gcr.io/bilguun3/pgadmin-services',
         '--region', 'us-central1',
         '--add-cloudsql-instances', 'bilguun3:us-central1:mypostgres',
         '--platform', 'managed',
@@ -26,8 +26,8 @@ steps:
     entrypoint: gcloud
     args:
       [
-        'run', 'deploy', 'go-microservice',
-        '--image', 'gcr.io/bilguun3/go-microservice',
+        'run', 'deploy', 'go-services',
+        '--image', 'gcr.io/bilguun3/go-services',
         '--region', 'us-central1',
         '--add-cloudsql-instances', 'bilguun3:us-central1:mypostgres',
         '--platform', 'managed',
@@ -37,7 +37,7 @@ steps:
 
   # Step to build and push the Python service
   - name: "gcr.io/cloud-builders/docker"
-    args: ['build', '-t', 'gcr.io/bilguun3/python-service', '-f', 'python-services/Dockerfile', 'python-services']
+    args: ['build', '-t', 'gcr.io/bilguun3/python-service's, '-f', 'python-services/Dockerfile', 'python-services']
   - name: "gcr.io/cloud-builders/docker"
     args: ['push', 'gcr.io/bilguun3/python-service']
 
@@ -46,12 +46,13 @@ steps:
     entrypoint: gcloud
     args:
       [
-        'run', 'deploy', 'python-service',
-        '--image', 'gcr.io/bilguun3/python-service',
+        'run', 'deploy', 'python-services',
+        '--image', 'gcr.io/bilguun3/python-services',
         '--region', 'us-central1',
         '--add-cloudsql-instances', 'bilguun3:us-central1:mypostgres',
         '--platform', 'managed',
         '--port', '8050',
+        '--timeout', '300s',
         '--allow-unauthenticated'
       ]
 
@@ -59,6 +60,6 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 images:
-  - gcr.io/bilguun3/go-service
-  - gcr.io/bilguun3/python-service
-  - gcr.io/bilguun3/pgadmin-service
+  - gcr.io/bilguun3/go-services
+  - gcr.io/bilguun3/python-services
+  - gcr.io/bilguun3/pgadmin-services
