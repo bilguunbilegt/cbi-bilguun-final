@@ -53,7 +53,7 @@ steps:
     entrypoint: gcloud
     args:
       [
-        'run', 'deploy', 'python-services',
+        'run', 'deploy', 'services', 'add-iam-policy-binding', 'python-services',
         '--image', 'gcr.io/bilguun3/python-services',
         '--region', 'us-central1',
         '--add-cloudsql-instances', 'bilguun3:us-central1:mypostgres',
