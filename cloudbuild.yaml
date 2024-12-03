@@ -59,7 +59,7 @@ steps:
         '--add-cloudsql-instances', 'bilguun3:us-central1:mypostgres',
         '--platform', 'managed',
         '--port', '8050',
-        '--timeout', '300s',
+        '--timeout', '500s',
         '--allow-unauthenticated'
       ]
 
