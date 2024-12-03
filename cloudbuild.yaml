@@ -3,7 +3,7 @@ steps:
   - name: "gcr.io/cloud-builders/docker"
     args: ['pull', 'dpage/pgadmin4']
   - name: "gcr.io/cloud-builders/docker"
-    args: ['tag', 'dpage/pgadmin4','gcr.io/bilguun3/pg-admin-services'']
+    args: ['tag', 'dpage/pgadmin4','gcr.io/bilguun3/pg-admin-services']
   - name: "gcr.io/cloud-builders/docker"
     args: ['push', 'gcr.io/bilguun3/pg-admin-services'']
   # Step to deploy pgAdmin to Cloud Run
