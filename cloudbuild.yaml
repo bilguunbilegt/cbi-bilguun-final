@@ -1,43 +1,64 @@
 steps:
-  # Step to build and deploy the Go service
+  # Step to build and push the Go service
   - name: "gcr.io/cloud-builders/docker"
     args: ['build', '-t', 'gcr.io/bilguun3/go-microservice', '-f', 'go-services/Dockerfile', 'go-services']
   - name: "gcr.io/cloud-builders/docker"
     args: ['push', 'gcr.io/bilguun3/go-microservice']
 
+  # Step to deploy pgAdmin to Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: gcloud
-    args: [
-      'run', 'deploy', 'go-microservice',
-      '--image', 'gcr.io/bilguun3/go-microservice',
-      '--region', 'us-central1',
-      '--add-cloudsql-instances', 'bilguun3:us-central1:mypostgres',
-      '--platform', 'managed',
-      '--port', '8080',
-      '--allow-unauthenticated'
-    ]
+    args:
+      [
+        'run', 'deploy', 'pg-admin',
+        '--image', 'gcr.io/bilguun3/pgadmin',
+        '--region', 'us-central1',
+        '--add-cloudsql-instances', 'bilguun3:us-central1:mypostgres',
+        '--platform', 'managed',
+        '--port', '80',
+        '--allow-unauthenticated',
+        '--set-env-vars', 'PGADMIN_DEFAULT_EMAIL=user@gmail.com',
+        '--set-env-vars', 'PGADMIN_DEFAULT_PASSWORD=SuperSecret'
+      ]
 
-  # Step to build and deploy the Python service
+  # Step to deploy the Go service to Cloud Run
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      [
+        'run', 'deploy', 'go-microservice',
+        '--image', 'gcr.io/bilguun3/go-microservice',
+        '--region', 'us-central1',
+        '--add-cloudsql-instances', 'bilguun3:us-central1:mypostgres',
+        '--platform', 'managed',
+        '--port', '8080',
+        '--allow-unauthenticated'
+      ]
+
+  # Step to build and push the Python service
   - name: "gcr.io/cloud-builders/docker"
     args: ['build', '-t', 'gcr.io/bilguun3/python-service', '-f', 'python-services/Dockerfile', 'python-services']
   - name: "gcr.io/cloud-builders/docker"
     args: ['push', 'gcr.io/bilguun3/python-service']
 
+  # Step to deploy the Python service to Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: gcloud
-    args: [
-      'run', 'deploy', 'python-service',
-      '--image', 'gcr.io/bilguun3/python-service',
-      '--region', 'us-central1',
-      '--add-cloudsql-instances', 'bilguun3:us-central1:mypostgres',
-      '--platform', 'managed',
-      '--port', '8050',
-      '--allow-unauthenticated'
-    ]
+    args:
+      [
+        'run', 'deploy', 'python-service',
+        '--image', 'gcr.io/bilguun3/python-service',
+        '--region', 'us-central1',
+        '--add-cloudsql-instances', 'bilguun3:us-central1:mypostgres',
+        '--platform', 'managed',
+        '--port', '8050',
+        '--allow-unauthenticated'
+      ]
 
 options:
   logging: CLOUD_LOGGING_ONLY
 
 images:
-  - gcr.io/bilguun3/go-microservice
+  - gcr.io/bilguun3/go-service
   - gcr.io/bilguun3/python-service
+  - gcr.io/bilguun3/pgadmin-service
