@@ -1,17 +1,18 @@
 steps:
-  # Step to build and push the Go service
+  # Steps to pull a docker image for pgadmin, push it to container registry and deploy it to cloud run.
   - name: "gcr.io/cloud-builders/docker"
-    args: ['build', '-t', 'gcr.io/bilguun3/go-microservice', '-f', 'go-services/Dockerfile', 'go-services']
+    args: ['pull', 'dpage/pgadmin4']
   - name: "gcr.io/cloud-builders/docker"
-    args: ['push', 'gcr.io/bilguun3/go-microservice']
-
+    args: ['tag', 'dpage/pgadmin4','gcr.io/bilguun3/pg-admin-services'']
+  - name: "gcr.io/cloud-builders/docker"
+    args: ['push', 'gcr.io/bilguun3/pg-admin-services'']
   # Step to deploy pgAdmin to Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
-    entrypoint: gcloud
+    entrypoint: gcloud  
     args:
       [
         'run', 'deploy', 'pg-admin-services',
-        '--image', 'gcr.io/bilguun3/pgadmin-services',
+        '--image', 'gcr.io/bilguun3/pg-admin-services',
         '--region', 'us-central1',
         '--add-cloudsql-instances', 'bilguun3:us-central1:mypostgres',
         '--platform', 'managed',
@@ -21,6 +22,12 @@ steps:
         '--set-env-vars', 'PGADMIN_DEFAULT_PASSWORD=SuperSecret'
       ]
 
+  # Step to build and push the Go service
+  - name: "gcr.io/cloud-builders/docker"
+    args: ['build', '-t', 'gcr.io/bilguun3/go-services', '-f', 'go-services/Dockerfile', 'go-services']
+  - name: "gcr.io/cloud-builders/docker"
+    args: ['push', 'gcr.io/bilguun3/go-services']
+  
   # Step to deploy the Go service to Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: gcloud
@@ -39,7 +46,7 @@ steps:
   - name: "gcr.io/cloud-builders/docker"
     args: ['build', '-t', 'gcr.io/bilguun3/python-services', '-f', 'python-services/Dockerfile', 'python-services']
   - name: "gcr.io/cloud-builders/docker"
-    args: ['push', 'gcr.io/bilguun3/python-service']
+    args: ['push', 'gcr.io/bilguun3/python-services']
 
   # Step to deploy the Python service to Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
@@ -62,4 +69,4 @@ options:
 images:
   - gcr.io/bilguun3/go-services
   - gcr.io/bilguun3/python-services
-  - gcr.io/bilguun3/pgadmin-services
+  - gcr.io/bilguun3/pg-admin-services
