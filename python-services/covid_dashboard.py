@@ -49,5 +49,5 @@ app.layout = html.Div([
 
 if __name__ == "__main__":
     # Get the port from the environment variable
-    port = int(os.getenv("PORT", "8050"))  # Default to 8050 if PORT is not set
+    port = int(os.getenv("PORT", "8020"))  # Default to 8020 if PORT is not set
     app.run_server(debug=True, host="0.0.0.0", port=port)
