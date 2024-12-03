@@ -1,7 +1,7 @@
 steps:
   # Step to build and deploy the Go service
   - name: "gcr.io/cloud-builders/docker"
-    args: ['build', '-t', 'gcr.io/bilguun3/go-microservice', '-f', 'Dockerfile-go', '.']
+    args: ['build', '-t', 'gcr.io/bilguun3/go-microservice', '-f', 'go-services/Dockerfile', 'go-services']
   - name: "gcr.io/cloud-builders/docker"
     args: ['push', 'gcr.io/bilguun3/go-microservice']
 
@@ -19,7 +19,7 @@ steps:
 
   # Step to build and deploy the Python service
   - name: "gcr.io/cloud-builders/docker"
-    args: ['build', '-t', 'gcr.io/bilguun3/python-service', '-f', 'Dockerfile-python', '.']
+    args: ['build', '-t', 'gcr.io/bilguun3/python-service', '-f', 'python-services/Dockerfile', 'python-services']
   - name: "gcr.io/cloud-builders/docker"
     args: ['push', 'gcr.io/bilguun3/python-service']
 
