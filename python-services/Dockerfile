@@ -14,10 +14,10 @@ COPY covid_forecasting.py .
 COPY covid_dashboard.py .
 
 # Expose the port for Cloud Run
-EXPOSE 8020
+EXPOSE 8000
 
 # Set the PORT environment variable (default to 8020)
-ENV PORT 8020
+ENV PORT 8000
 
 # Run the forecasting script before starting the dashboard
 CMD ["bash", "-c", "python3 covid_forecasting.py && python3 covid_dashboard.py"]
